@@ -65,15 +65,20 @@ export default function ScrollRobot() {
       images[index] = img;
     };
 
-    // Start 4 concurrent loading "streams" to avoid overwhelming the browser
-    for (let i = 0; i < 4; i++) {
-      loadNext();
-    }
+    // Delay starting the concurrent loading streams by 1.5 seconds.
+    // This allows the browser to prioritize downloading the massive Hero Video
+    // so the initial page load feels instantaneous.
+    const startLoadingTimer = setTimeout(() => {
+      for (let i = 0; i < 4; i++) {
+        loadNext();
+      }
+    }, 1500);
     
     imagesRef.current = images;
 
     return () => {
       isMounted = false;
+      clearTimeout(startLoadingTimer);
     };
   }, []);
 
