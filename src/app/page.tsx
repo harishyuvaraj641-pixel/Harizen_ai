@@ -13,6 +13,12 @@ export default function Home() {
   const [videoEnded, setVideoEnded] = useState(false);
 
   useEffect(() => {
+    // Force scroll to top on reload so the user always sees the Hero section first
+    window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
     // Lock scroll while video is playing
     if (!videoEnded) {
       document.body.classList.add('scroll-locked');

@@ -58,13 +58,13 @@ export default function ChatUI() {
   ];
 
   return (
-    <section id="chat" className="relative w-full min-h-screen bg-[#050810] flex items-center justify-center py-20 px-4 md:px-6 overflow-hidden">
+    <section id="chat" className="relative w-full min-h-screen bg-[#050810] flex items-center justify-center py-8 md:py-20 px-4 md:px-6 overflow-hidden">
       
       {/* Background gradients */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00f0ff]/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#0066ff]/10 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="w-full max-w-4xl glass-panel rounded-2xl border border-[#00f0ff]/20 shadow-[0_0_50px_rgba(0,240,255,0.05)] overflow-hidden flex flex-col h-[80vh] relative z-10">
+      <div className="w-full max-w-4xl glass-panel rounded-2xl border border-[#00f0ff]/20 shadow-[0_0_50px_rgba(0,240,255,0.05)] overflow-hidden flex flex-col h-[85dvh] md:h-[80vh] relative z-10">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#00f0ff]/10 bg-black/40">

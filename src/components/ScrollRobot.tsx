@@ -130,7 +130,7 @@ export default function ScrollRobot() {
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: `+=${TOTAL_FRAMES * 20}`,
+        end: () => `+=${window.innerWidth < 768 ? TOTAL_FRAMES * 10 : TOTAL_FRAMES * 20}`,
         pin: true,
         scrub: 1.5,
       }
