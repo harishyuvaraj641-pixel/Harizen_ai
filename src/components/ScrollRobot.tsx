@@ -24,32 +24,57 @@ export default function ScrollRobot() {
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const imagesRef = useRef<HTMLImageElement[]>([]);
 
-  // Preload images
+  // Preload images safely (prevent ERR_CONNECTION_RESET)
   useEffect(() => {
     let loaded = 0;
-    const images: HTMLImageElement[] = [];
+    const images: HTMLImageElement[] = new Array(TOTAL_FRAMES + 1);
+    let nextIndexToLoad = 1;
+    let isMounted = true;
 
-    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+    const loadNext = () => {
+      if (!isMounted || nextIndexToLoad > TOTAL_FRAMES) return;
+      
+      const index = nextIndexToLoad++;
       const img = new Image();
-      img.src = getFramePath(i);
+      
       img.onload = () => {
+        if (!isMounted) return;
         loaded++;
         setImagesLoaded(loaded);
+        
         // Initial draw when first frame loads
-        if (i === 1 && canvasRef.current) {
+        if (index === 1 && canvasRef.current) {
           const ctx = canvasRef.current.getContext("2d");
           if (ctx) {
-            // Wait for canvas dimensions to be set
-            setTimeout(() => {
-              renderFrame(0);
-            }, 100);
+            setTimeout(() => renderFrame(1), 100);
           }
         }
+        
+        // Load next frame in this chain
+        loadNext();
       };
-      images.push(img);
+      
+      img.onerror = () => {
+        if (!isMounted) return;
+        console.warn(`Failed to load frame ${index}, skipping...`);
+        // Continue loading even if one fails
+        loadNext();
+      };
+
+      img.src = getFramePath(index);
+      images[index] = img;
+    };
+
+    // Start 4 concurrent loading "streams" to avoid overwhelming the browser
+    for (let i = 0; i < 4; i++) {
+      loadNext();
     }
     
     imagesRef.current = images;
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Handle Resize and Drawing
@@ -89,7 +114,7 @@ export default function ScrollRobot() {
     if (!containerRef.current || !canvasRef.current) return;
     if (imagesLoaded < Math.min(10, TOTAL_FRAMES)) return;
 
-    const playhead = { frame: 0 };
+    const playhead = { frame: 1 };
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -103,7 +128,7 @@ export default function ScrollRobot() {
 
     // Frame animation
     tl.to(playhead, {
-      frame: TOTAL_FRAMES - 1,
+      frame: TOTAL_FRAMES,
       ease: "none",
       duration: 1, // Represents 100% of the timeline
       onUpdate: () => {
