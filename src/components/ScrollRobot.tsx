@@ -65,20 +65,16 @@ export default function ScrollRobot() {
       images[index] = img;
     };
 
-    // Delay starting the concurrent loading streams by 1.5 seconds.
-    // This allows the browser to prioritize downloading the massive Hero Video
-    // so the initial page load feels instantaneous.
-    const startLoadingTimer = setTimeout(() => {
-      for (let i = 0; i < 4; i++) {
-        loadNext();
-      }
-    }, 1500);
+    // Start 8 concurrent loading streams immediately.
+    // 8 is safe enough to prevent connection resets but fast enough to eliminate wait times.
+    for (let i = 0; i < 8; i++) {
+      loadNext();
+    }
     
     imagesRef.current = images;
 
     return () => {
       isMounted = false;
-      clearTimeout(startLoadingTimer);
     };
   }, []);
 
@@ -88,7 +84,16 @@ export default function ScrollRobot() {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const img = imagesRef.current[index];
+    // Fallback: If the user scrolls faster than the images load, 
+    // find the closest loaded frame to prevent the animation from freezing or stuttering.
+    let closestIndex = index;
+    while (closestIndex >= 1) {
+      const currentImg = imagesRef.current[closestIndex];
+      if (currentImg && currentImg.complete) break;
+      closestIndex--;
+    }
+
+    const img = imagesRef.current[closestIndex];
     if (!img || !img.complete) return;
 
     const cw = canvas.width = window.innerWidth;
