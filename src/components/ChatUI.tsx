@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Cpu, Paperclip, X, Copy, Check } from "lucide-react";
+import { Send, Cpu, Paperclip, X, Copy, Check, Mic, MicOff, Volume2, VolumeX, Square } from "lucide-react";
 import { useChat } from "@/hooks/useChat";
 import ReactMarkdown from "react-markdown";
 
@@ -17,6 +17,12 @@ export default function ChatUI() {
     selectedModel,
     setSelectedModel,
     isLoading, 
+    isListening,
+    isSpeaking,
+    voiceEnabled,
+    setVoiceEnabled,
+    toggleListening,
+    stopSpeaking,
     sendMessage, 
     messagesEndRef 
   } = useChat();
@@ -83,8 +89,19 @@ export default function ChatUI() {
             </div>
           </div>
           
-          {/* Model Selector */}
-          <div>
+          {/* Model & Voice Controls */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setVoiceEnabled(!voiceEnabled)}
+              className={`p-2 rounded-lg border transition-all ${
+                voiceEnabled 
+                  ? 'bg-[#00f0ff]/10 border-[#00f0ff]/50 text-[#00f0ff] box-glow' 
+                  : 'bg-black/40 border-white/10 text-gray-500 hover:text-gray-300'
+              }`}
+              title={voiceEnabled ? "Voice Reply Enabled" : "Voice Reply Disabled"}
+            >
+              {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </button>
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
@@ -224,23 +241,48 @@ export default function ChatUI() {
             >
               <Paperclip size={20} />
             </button>
+            
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`p-3 mb-1 rounded-xl transition-all border ${
+                isListening 
+                  ? 'bg-red-500/20 border-red-500/50 text-red-500 animate-pulse' 
+                  : 'bg-transparent border-transparent hover:bg-[#00f0ff]/10 text-gray-400 hover:text-[#00f0ff]'
+              }`}
+            >
+              {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
+
             <div className="relative flex-1">
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
-                placeholder="Transmit message to Harizen AI..."
-                className="w-full bg-black/50 border border-[#00f0ff]/20 rounded-xl pl-5 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#00f0ff]/50 focus:ring-1 focus:ring-[#00f0ff]/50 transition-all resize-none min-h-[56px] max-h-[150px] font-light custom-scrollbar"
+                placeholder={isListening ? "Listening..." : "Transmit message to Harizen AI..."}
+                className="w-full bg-black/50 border border-[#00f0ff]/20 rounded-xl pl-5 pr-24 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#00f0ff]/50 focus:ring-1 focus:ring-[#00f0ff]/50 transition-all resize-none min-h-[56px] max-h-[150px] font-light custom-scrollbar"
                 rows={1}
               />
-              <button
-                type="submit"
-                disabled={(!input.trim() && !attachedImage) || isLoading}
-                className="absolute right-3 bottom-3 p-2 rounded-lg bg-[#00f0ff]/10 text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed group box-glow"
-              >
-                <Send size={20} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              <div className="absolute right-3 bottom-3 flex gap-2">
+                {isSpeaking && (
+                  <button
+                    type="button"
+                    onClick={stopSpeaking}
+                    className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all box-glow"
+                    title="Stop Speaking"
+                  >
+                    <Square size={20} fill="currentColor" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={(!input.trim() && !attachedImage) || isLoading}
+                  className="p-2 rounded-lg bg-[#00f0ff]/10 text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed group box-glow"
+                >
+                  <Send size={20} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
           </form>
           <div className="text-center mt-3 text-[10px] text-gray-600 font-mono tracking-widest">
